@@ -1,16 +1,16 @@
 local PlayerService = game:GetService'Players'
-local EventManager = loadstring(game:HttpGet'https://raw.githubusercontent.com/TechHog8984/TechHub-V3/main/script/misc/events.lua')()
-local PlayersHandler = {Connections = {}, Players = {}, PlayerAdded = EventManager:CreateEvent('PlayerAdded'), PlayerRemoving = EventManager:CreateEvent('PlayerRemoving')} do 
+local CreateEvent = loadstring(game:HttpGet'https://raw.githubusercontent.com/TechHog8984/Event-Manager/main/src.lua')()
+local PlayersHandler = {Connections = {}, Players = {}, PlayerAdded = CreateEvent('PlayerAdded'), PlayerRemoving = CreateEvent('PlayerRemoving')} do 
     local function PlayerAdded(Player)
         if Player then
             local Handle = {}
 
-            Handle.CharacterAdded = EventManager:CreateEvent(Player.Name .. ' - CharacterAdded')
-            Handle.CharacterRemoved = EventManager:CreateEvent(Player.name .. ' - CharacterRemoved')
-            Handle.HumanoidAdded = EventManager:CreateEvent(Player.Name .. ' - HumanoidAdded')
-            Handle.HumanoidRemoved = EventManager:CreateEvent(Player.Name .. ' - HumanoidRemoved')
-            Handle.HumanoidRootPartAdded = EventManager:CreateEvent(Player.Name .. ' - HumanoidRootPartAdded')
-            Handle.HumanoidRootPartRemoved = EventManager:CreateEvent(Player.Name .. ' - HumanoidRootPartRemoved')
+            Handle.CharacterAdded = CreateEvent(Player.Name .. ' - CharacterAdded')
+            Handle.CharacterRemoved = CreateEvent(Player.name .. ' - CharacterRemoved')
+            Handle.HumanoidAdded = CreateEvent(Player.Name .. ' - HumanoidAdded')
+            Handle.HumanoidRemoved = CreateEvent(Player.Name .. ' - HumanoidRemoved')
+            Handle.HumanoidRootPartAdded = CreateEvent(Player.Name .. ' - HumanoidRootPartAdded')
+            Handle.HumanoidRootPartRemoved = CreateEvent(Player.Name .. ' - HumanoidRootPartRemoved')
 
             function PartRemoved(Part)
                 if Part then
