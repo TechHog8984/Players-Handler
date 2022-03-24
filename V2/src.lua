@@ -95,6 +95,32 @@ local Properties, Functions; do
     };
 end;
 
+local CustomFunctions = {};
+do
+    CustomFunctions.GetPart = function(Self, Part)
+        return type(Self.Character) == "userdata" and FindFirstChild(Self.Character, Part);
+    end;
+    CustomFunctions.GetParts = function(Self, ...)
+        local Parts;
+        if type((...)) == "table" then
+            Parts = (...);
+        else
+            Parts = {...};
+        end;
+
+        local RealParts = {};
+        for I, Part in next, Parts do
+            table.insert(RealParts, CustomFunctions.GetPart(Self, Part));
+        end;
+
+        return unpack(RealParts);
+    end;
+
+    CustomFunctions.IsPlayerFriendly = function(Self, Player)
+        
+    end;
+end;
+
 local PlayerMT; do
     PlayerMT = {
         __newindex = function(Self, Index, Value)
@@ -124,6 +150,9 @@ local PlayerMT; do
                 if find(Functions, Index) then
                     return Holder.__functions[Index];
                 end;
+                if CustomFunctions[Index] then
+                    return CustomFunctions[Index];
+                end;
                 local PlayerObject = Holder.__object;
                 if type(PlayerObject) == "userdata" then
                     return PlayerObject[Index];
@@ -139,32 +168,6 @@ local PlayerMT; do
         end,
     };
     Handler.PlayerMT = PlayerMT;
-end;
-
-local CustomFunctions = {};
-do --custom player functions
-    CustomFunctions.GetPart = function(Self, Part)
-        return type(Self.Character) == "userdata" and FindFirstChild(Self.Character, Part);
-    end;
-    CustomFunctions.GetParts = function(Self, ...)
-        local Parts;
-        if type((...)) == "table" then
-            Parts = (...);
-        else
-            Parts = {...};
-        end;
-
-        local RealParts = {};
-        for I, Part in next, Parts do
-            table.insert(RealParts, CustomFunctions.GetPart(Self, Part));
-        end;
-
-        return unpack(RealParts);
-    end;
-
-    CustomFunctions.IsPlayerFriendly = function(Self, Player)
-        
-    end;
 end;
 
 local function CreatePlayer(Inst)
