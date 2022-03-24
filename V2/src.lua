@@ -1,54 +1,12 @@
 local FindFirstChild = workspace.FindFirstChild;
 local sub = string.sub;
+local find = table.find;
 
 local Handler = {Players = {}, Holders = {}};
 local PlayerService = game:GetService("Players");
 local LocalPlayer = PlayerService.LocalPlayer;
 
-local PlayerMT; do
-    PlayerMT = {
-        __newindex = function(Self, Index, Value)
-            local Holder = type(Self) == "userdata" and Handler.Holders[Self];
-            if type(Holder) == "table" then
-                if sub(Index, 1, 2) == "__" then
-                    Holder[Index] = Value;
-                    return;
-                end;
-                local PlayerObject = Holder.__object;
-                if type(PlayerObject) == "userdata" then
-                    PlayerObject[Index] = Value;
-                    return;
-                else
-                    return error("Failed to get playerobject", 2);
-                end;
-            else
-                return error("Failed to get holder", 2);
-            end;
-        end,
-        __index = function(Self, Index)
-            local Holder = type(Self) == "userdata" and Handler.Holders[Self];
-            if type(Holder) == "table" then
-                if sub(Index, 1, 2) == "__" then
-                    return Holder[Index];
-                end;
-                local PlayerObject = Holder.__object;
-                if type(PlayerObject) == "userdata" then
-                    return PlayerObject[Index];
-                else
-                    return error("Failed to get playerobject", 2);
-                end;
-            else
-                return error("Failed to get holder", 2);
-            end;
-        end,
-        __tostring = function(Self)
-            return Self.Name;
-        end,
-    };
-    Handler.PlayerMT = PlayerMT;
-end;
-
-local Properties; do
+local Properties, Functions; do
     Properties = {
         "Archivable",
         "AutoJumpEnabled",
@@ -81,14 +39,114 @@ local Properties; do
         "Team",
         "TeamColor",
     };
+    Functions = {
+        "AddToBlockList",
+        "ClearCharacterAppearance",
+        "DistanceFromCharacter",
+        "GetFriendStatus",
+        "GetFriendsOnline",
+        "GetGameSessionID",
+        "GetJoinData",
+        "GetMouse",
+        "GetNetworkPing",
+        "GetRoleInGroup",
+        "GetUnder13",
+        "HasAppearanceLoaded",
+        "IsFriendsWith",
+        "IsInGroup",
+        "Kick",
+        "LoadCharacter",
+        "LoadCharacterBlocking",
+        "LoadCharacterWithHumanoidDescription",
+        "Move",
+        "RemoveCharacter",
+        "RequestFriendship",
+        "RequestStreamAroundAsync",
+        "SetAccountAge",
+        "SetCharacterAppearanceJson",
+        "SetMemberShipType",
+        "SetSuperSafeChat",
+        "UpdatePlayerBlocked",
+
+        "ClearAllChildren",
+        "Clone",
+        "Destroy",
+        "FindFirstAncestor",
+        "FindFirstAncestorOfClass",
+        "FindFirstAncestorWhichIsA",
+        "FindFirstChild",
+        "FindFirstChildOfClass",
+        "FindFirstChildWhichIsA",
+        "FindFirstDescendant",
+        "GetActor",
+        "GetAttribute",
+        "GetAttributeChangedSignal",
+        "GetAttributes",
+        "GetChildren",
+        "GetDebugId",
+        "GetDescendants",
+        "GetFullName",
+        "GetPropertyChangedSignal",
+        "IsA",
+        "IsAncestorOf",
+        "IsDescendantOf",
+        "SetAttribute",
+        "WaitForChild",
+    };
 end;
 
-local PlayerFunctions = {};
-do --playerfunctions
-    PlayerFunctions.GetPart = function(Self, Part)
+local PlayerMT; do
+    PlayerMT = {
+        __newindex = function(Self, Index, Value)
+            local Holder = type(Self) == "userdata" and Handler.Holders[Self];
+            if type(Holder) == "table" then
+                if sub(Index, 1, 2) == "__" then
+                    Holder[Index] = Value;
+                    return;
+                end;
+                local PlayerObject = Holder.__object;
+                if type(PlayerObject) == "userdata" then
+                    PlayerObject[Index] = Value;
+                    return;
+                else
+                    return error("Failed to get playerobject", 2);
+                end;
+            else
+                return error("Failed to get holder", 2);
+            end;
+        end,
+        __index = function(Self, Index)
+            local Holder = type(Self) == "userdata" and Handler.Holders[Self];
+            if type(Holder) == "table" then
+                if sub(Index, 1, 2) == "__" then
+                    return Holder[Index];
+                end;
+                if find(Functions, Index) then
+                    return Holder.__functions[Index];
+                end;
+                local PlayerObject = Holder.__object;
+                if type(PlayerObject) == "userdata" then
+                    return PlayerObject[Index];
+                else
+                    return error("Failed to get playerobject", 2);
+                end;
+            else
+                return error("Failed to get holder", 2);
+            end;
+        end,
+        __tostring = function(Self)
+            return Self.Name;
+        end,
+    };
+    Handler.PlayerMT = PlayerMT;
+end;
+
+local CustomFunctions = {};
+do --custom player functions
+    CustomFunctions.GetPart = function(Self, Part)
         return type(Self.Character) == "userdata" and FindFirstChild(Self.Character, Part);
     end;
-    PlayerFunctions.GetParts = function(Self, ...)
+    CustomFunctions.GetParts = function(Self, ...)
         local Parts;
         if type((...)) == "table" then
             Parts = (...);
@@ -98,13 +156,13 @@ do --playerfunctions
 
         local RealParts = {};
         for I, Part in next, Parts do
-            table.insert(RealParts, PlayerFunctions.GetPart(Self, Part));
+            table.insert(RealParts, CustomFunctions.GetPart(Self, Part));
         end;
 
         return unpack(RealParts);
     end;
 
-    PlayerFunctions.IsPlayerFriendly = function(Self, Player)
+    CustomFunctions.IsPlayerFriendly = function(Self, Player)
         
     end;
 end;
@@ -112,7 +170,7 @@ end;
 local function CreatePlayer(Inst)
     --create new userdata with a metatable & a holder for storing values
     local Player = newproxy(true);
-    local Holder = {__object = Inst, __connections = {}};
+    local Holder = {__object = Inst, __connections = {}, __functions = {}};
     Handler.Holders[Player] = Holder;
 
     --loop through Player properties and set each one the same as the Player Instance
@@ -126,8 +184,19 @@ local function CreatePlayer(Inst)
         end;
     end);
 
-    --set the cusotm functions
-    for Name, Function in next, PlayerFunctions do
+    for I, Name in next, Functions do
+        Holder.__functions[Name] = function(Self, ...)
+            local Inst = Holder.__object;
+            if Inst then
+                if (...) == Inst then
+                    return Inst[Name](...);
+                end;
+                return Inst[Name](Inst, ...);
+            end;
+        end;
+    end;
+    --set the custom functions
+    for Name, Function in next, CustomFunctions do
         Holder[Name] = Function;
     end;
 
