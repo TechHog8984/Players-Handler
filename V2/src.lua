@@ -1,8 +1,39 @@
+--Using this in a non-synapse environment
+local HttpService = game:GetService("HttpService");
+local HttpGet; do
+    local Suc, Res = pcall(function()return game.HttpGet;end);
+    if Suc and Res then
+        HttpGet = Res;
+    end;
+end;
+local function HttpLoad(URL)
+    local Data;
+    if HttpGet then
+        Data = HttpGet(URL);
+    else
+        local Suc, Res = pcall(HttpService.GetAsync, HttpService, URL, true);
+        if Suc and Res then
+            Data = Res;
+        else
+            return error("Error occured while running GetAsync: " .. tostring(Res), 2);
+        end;
+    end;
+
+    if Data then
+        return loadstring(Data)();
+    else
+        return error("Failed to get data", 2);
+    end;
+end;
+--Using this in a non-synapse environment^^^^
+
+local CreateEvent = HttpLoad("https://raw.githubusercontent.com/TechHog8984/Event-Manager/main/src.lua");
+
 local FindFirstChild = workspace.FindFirstChild;
 local sub = string.sub;
 local find = table.find;
 
-local Handler = {Players = {}, Holders = {}};
+local Handler = {Players = {}, Holders = {}, InstToPlayer = {}, PlayerAdded = CreateEvent{Name = "PlayerAdded"}, PlayerRemoving = CreateEvent{Name = "PlayerRemoving"}};
 local PlayerService = game:GetService("Players");
 local LocalPlayer = PlayerService.LocalPlayer;
 
@@ -218,12 +249,15 @@ function Handler:AddPlayer(Inst)
         Handler.LocalPlayer = Player;
         Handler.Players.LocalPlayer = Player;
     end;
+    Handler.InstToPlayer[Inst] = Player;
+    Handler.PlayerAdded:Fire(Player);
 
     Handler.Players[Inst.Name] = Player;
 
     return Player;
 end;
 function Handler:RemovePlayer(Inst)
+    Handler.PlayerRemoving:Fire(Handler.InstToPlayer[Inst]);
     local Handle = Handler.Players[Inst.Name];
     for I, Connection in next, Handle.__connections do
         Connection:Disconnect();
